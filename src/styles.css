@@ -1092,6 +1092,12 @@ h2 em {
     padding: 9px 16px;
     line-height: 1.35;
     white-space: normal;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    visibility: visible;
+    opacity: 1;
+    z-index: 1000;
     transition: left .35s cubic-bezier(.22, 1, .36, 1), top .35s cubic-bezier(.22, 1, .36, 1), transform .25s ease;
 }
 

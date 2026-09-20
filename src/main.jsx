@@ -73,6 +73,7 @@ function App() {
   const noButtonRef = React.useRef(null);
   const yesButtonRef = React.useRef(null);
   const answerAreaRef = React.useRef(null);
+  const noMoveLockedRef = React.useRef(false);
 
   const getSafeNoPosition = () => {
     const button = noButtonRef.current;
@@ -99,8 +100,13 @@ function App() {
   };
 
   const moveNoButton = () => {
+    if (noMoveLockedRef.current) return;
+    noMoveLockedRef.current = true;
     setEscapeCount((count) => count + 1);
     setNoPosition(getSafeNoPosition());
+    window.setTimeout(() => {
+      noMoveLockedRef.current = false;
+    }, 450);
   };
 
   React.useEffect(() => {
@@ -126,6 +132,7 @@ function App() {
   const restart = () => {
     setStep(1);
     setEscapeCount(0);
+    noMoveLockedRef.current = false;
     setNoPosition({ top: 0, left: 0 });
     setSelectedDate(dateConfig.date);
     setSelectedDinner('');
