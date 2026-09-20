@@ -72,6 +72,7 @@ function App() {
   const [selectedDate, setSelectedDate] = React.useState(dateConfig.date);
   const [selectedDinner, setSelectedDinner] = React.useState('');
   const noButtonRef = React.useRef(null);
+  const answerAreaRef = React.useRef(null);
 
   const beginInvitation = () => {
     setStage('invitation');
@@ -80,11 +81,13 @@ function App() {
 
   const moveNoButton = () => {
     const button = noButtonRef.current;
-    if (!button) return;
-    const rect = button.getBoundingClientRect();
-    const padding = 18;
-    const maxLeft = Math.max(padding, window.innerWidth - rect.width - padding);
-    const maxTop = Math.max(padding, window.innerHeight - rect.height - padding);
+    const answerArea = answerAreaRef.current;
+    if (!button || !answerArea) return;
+    const buttonRect = button.getBoundingClientRect();
+    const answerAreaRect = answerArea.getBoundingClientRect();
+    const padding = 8;
+    const maxLeft = Math.max(padding, answerAreaRect.width - buttonRect.width - padding);
+    const maxTop = Math.max(padding, answerAreaRect.height - buttonRect.height - padding);
     const nextCount = escapeCount + 1;
     setEscapeCount(nextCount);
     setNoPosition({
@@ -92,6 +95,26 @@ function App() {
       top: Math.round(padding + randomUnit() * Math.max(0, maxTop - padding)),
     });
   };
+
+  React.useEffect(() => {
+    if (!escapeCount) return undefined;
+    const keepNoButtonInside = () => {
+      const button = noButtonRef.current;
+      const answerArea = answerAreaRef.current;
+      if (!button || !answerArea) return;
+      const buttonRect = button.getBoundingClientRect();
+      const answerAreaRect = answerArea.getBoundingClientRect();
+      const padding = 8;
+      const maxLeft = Math.max(padding, answerAreaRect.width - buttonRect.width - padding);
+      const maxTop = Math.max(padding, answerAreaRect.height - buttonRect.height - padding);
+      setNoPosition((position) => ({
+        left: Math.min(Math.max(padding, position.left), maxLeft),
+        top: Math.min(Math.max(padding, position.top), maxTop),
+      }));
+    };
+    window.addEventListener('resize', keepNoButtonInside);
+    return () => window.removeEventListener('resize', keepNoButtonInside);
+  }, [escapeCount]);
 
   const acceptDate = () => {
     setStage('date-selection');
@@ -163,9 +186,9 @@ function App() {
               <p className="section-label">03 / ONE LAST QUESTION</p>
               <h2>所以……</h2>
               <p className="question-text">{dateConfig.partnerName}，要不要跟<br />{dateConfig.myName} 去約會？ <span>🥺❤️</span></p>
-              <div className="answer-area">
+              <div className="answer-area" ref={answerAreaRef}>
                 <button className="yes-button" style={{ transform: `scale(${noScale})` }} onClick={acceptDate}><Heart size={20} fill="currentColor" /> 要！</button>
-                <button ref={noButtonRef} className="no-button" style={escapeCount ? { position: 'fixed', left: noPosition.left, top: noPosition.top } : undefined} onMouseEnter={moveNoButton} onTouchStart={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{noMessage}</button>
+                <button ref={noButtonRef} className="no-button" style={escapeCount ? { position: 'absolute', left: noPosition.left, top: noPosition.top } : undefined} onMouseEnter={moveNoButton} onTouchStart={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{noMessage}</button>
               </div>
               <p className="tiny-note">先選擇要不要，再一起決定哪一天 ❤️</p>
             </div>
