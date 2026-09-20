@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { Heart, MapPin, Clock3, CalendarDays, ArrowDown, Sparkles, Camera, Check } from 'lucide-react';
+import { Heart, CalendarDays, RotateCcw } from 'lucide-react';
 import './styles.css';
 
 const dateConfig = {
@@ -11,7 +11,7 @@ const dateConfig = {
   time: '15:00',
   meetingLocation: '先保密 🤫',
   dressCode: '舒服、漂亮、你喜歡就好',
-  dinnerOptions: ['火鍋', '拉麵', '義大利麵', '水餃', '韓式', '牛排'],
+  dinnerOptions: ['火鍋', '牛肉麵', '滷肉飯', '夜市小吃', '烤肉', '拉麵'],
   schedule: [
     { time: '15:00', icon: '☕', title: '下午茶', description: '先一起找個舒服的地方坐下來' },
     { time: '17:00', icon: '🚶', title: '一起散步', description: '慢慢走，慢慢聊今天的心事' },
@@ -65,20 +65,14 @@ function isFutureDate(date) {
 }
 
 function App() {
-  const [stage, setStage] = React.useState('intro');
+  const [step, setStep] = React.useState(1);
   const [escapeCount, setEscapeCount] = React.useState(0);
   const [noPosition, setNoPosition] = React.useState({ top: 0, left: 0 });
-  const [hearts, setHearts] = React.useState([]);
   const [selectedDate, setSelectedDate] = React.useState(dateConfig.date);
   const [selectedDinner, setSelectedDinner] = React.useState('');
   const noButtonRef = React.useRef(null);
   const yesButtonRef = React.useRef(null);
   const answerAreaRef = React.useRef(null);
-
-  const beginInvitation = () => {
-    setStage('invitation');
-    window.setTimeout(() => document.getElementById('invitation')?.scrollIntoView({ behavior: 'smooth' }), 40);
-  };
 
   const getSafeNoPosition = () => {
     const button = noButtonRef.current;
@@ -86,157 +80,89 @@ function App() {
     const yesButton = yesButtonRef.current;
     if (!button || !answerArea || !yesButton) return { left: 8, top: 8 };
     const buttonRect = button.getBoundingClientRect();
-    const answerAreaRect = answerArea.getBoundingClientRect();
-    const yesButtonRect = yesButton.getBoundingClientRect();
+    const areaRect = answerArea.getBoundingClientRect();
+    const yesRect = yesButton.getBoundingClientRect();
     const padding = 8;
-    const maxLeft = Math.max(padding, answerAreaRect.width - buttonRect.width - padding);
-    const maxTop = Math.max(padding, answerAreaRect.height - buttonRect.height - padding);
+    const maxLeft = Math.max(padding, areaRect.width - buttonRect.width - padding);
+    const maxTop = Math.max(padding, areaRect.height - buttonRect.height - padding);
     const yesBox = {
-      left: yesButtonRect.left - answerAreaRect.left,
-      right: yesButtonRect.right - answerAreaRect.left,
-      top: yesButtonRect.top - answerAreaRect.top,
-      bottom: yesButtonRect.bottom - answerAreaRect.top,
+      left: yesRect.left - areaRect.left,
+      right: yesRect.right - areaRect.left,
+      top: yesRect.top - areaRect.top,
+      bottom: yesRect.bottom - areaRect.top,
     };
-
     for (let attempt = 0; attempt < 20; attempt += 1) {
       const left = Math.round(padding + randomUnit() * Math.max(0, maxLeft - padding));
       const top = Math.round(padding + randomUnit() * Math.max(0, maxTop - padding));
-      const overlapsYes = left < yesBox.right && left + buttonRect.width > yesBox.left && top < yesBox.bottom && top + buttonRect.height > yesBox.top;
-      if (!overlapsYes) return { left, top };
+      const overlaps = left < yesBox.right && left + buttonRect.width > yesBox.left && top < yesBox.bottom && top + buttonRect.height > yesBox.top;
+      if (!overlaps) return { left, top };
     }
-
     return { left: padding, top: maxTop };
   };
 
   const moveNoButton = () => {
-    if (!noButtonRef.current || !answerAreaRef.current) return;
-    const nextCount = escapeCount + 1;
-    setEscapeCount(nextCount);
+    setEscapeCount((count) => count + 1);
     setNoPosition(getSafeNoPosition());
   };
 
   React.useEffect(() => {
-    if (!escapeCount) return undefined;
-    const keepNoButtonInside = () => {
-      const button = noButtonRef.current;
-      const answerArea = answerAreaRef.current;
-      if (!button || !answerArea) return;
-      setNoPosition(getSafeNoPosition());
-    };
+    if (step !== 1 || !escapeCount) return undefined;
+    const keepNoButtonInside = () => setNoPosition(getSafeNoPosition());
     window.addEventListener('resize', keepNoButtonInside);
     return () => window.removeEventListener('resize', keepNoButtonInside);
-  }, [escapeCount]);
-
-  const acceptDate = () => {
-    setStage('date-selection');
-  };
-
-  const confirmDate = () => {
-    if (!isFutureDate(selectedDate) || !selectedDinner) return;
-    const newHearts = Array.from({ length: 34 }, (_, index) => ({
-      id: `${Date.now()}-${index}`,
-      left: `${randomUnit() * 100}%`,
-      delay: `${randomUnit() * 0.7}s`,
-      symbol: celebrationSymbol(index),
-    }));
-    setHearts(newHearts);
-    setStage('celebrating');
-    window.setTimeout(() => setStage('success'), 1900);
-  };
+  }, [step, escapeCount]);
 
   const noScale = Math.min(1 + escapeCount * 0.08, 1.9);
   const noMessage = escapeMessages[Math.min(escapeCount, escapeMessages.length - 1)];
+  const chooseDate = (event) => setSelectedDate(event.target.value);
+  const goToFood = () => { if (isFutureDate(selectedDate)) setStep(3); };
+  const restart = () => {
+    setStep(1);
+    setEscapeCount(0);
+    setNoPosition({ top: 0, left: 0 });
+    setSelectedDate(dateConfig.date);
+    setSelectedDinner('');
+  };
 
-  return (
-    <main className={`app-shell ${stage === 'success' ? 'is-success' : ''}`}>
-      <div className="ambient ambient-one" />
-      <div className="ambient ambient-two" />
-      <div className="floating-hearts" aria-hidden="true">
-        <span>♡</span><span>✦</span><span>♡</span><span>✧</span>
+  return <main className="app-shell four-step-app">
+    <div className="ambient ambient-one" />
+    <div className="ambient ambient-two" />
+    <div className="floating-hearts" aria-hidden="true"><span>♡</span><span>✦</span><span>♡</span><span>✧</span></div>
+    <div className="step-progress" aria-label={`第 ${step} 步，共 4 步`}>{[1, 2, 3, 4].map((item) => <span className={item <= step ? 'is-active' : ''} key={item} />)}</div>
+
+    {step === 1 && <section className="four-step-card step-question">
+      <p className="step-kicker">A LITTLE QUESTION FOR {dateConfig.partnerName.toUpperCase()}</p>
+      <div className="step-icon"><Heart size={48} fill="currentColor" /></div>
+      <h1>🌸 要不要跟我<br /><em>去約會？</em> 🌸</h1>
+      <p className="step-copy">{dateConfig.myName} 有一個小小的邀請，<br />想和你一起度過一個特別的日子。</p>
+      <div className="step-answer-area" ref={answerAreaRef}>
+        <button ref={yesButtonRef} className="yes-button" style={{ transform: `scale(${noScale})` }} onClick={() => setStep(2)}><Heart size={19} fill="currentColor" /> 好哦 ♥</button>
+        <button ref={noButtonRef} className="no-button" style={escapeCount ? { position: 'absolute', left: noPosition.left, top: noPosition.top } : undefined} onMouseEnter={moveNoButton} onTouchStart={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{escapeCount ? noMessage : 'No 👋'}</button>
       </div>
+      <p className="tiny-note">提示：這題沒有錯誤答案，但有一個比較可愛的答案。</p>
+    </section>}
 
-      {stage === 'intro' && (
-        <section className="hero-screen section-pad">
-          <div className="eyebrow"><span className="eyebrow-line" /> A little surprise for you <span className="eyebrow-line" /></div>
-          <div className="hero-heart"><Heart size={42} fill="currentColor" strokeWidth={1.5} /></div>
-          <p className="hero-kicker">Dear {dateConfig.partnerName},</p>
-          <h1>{dateConfig.partnerName}，<br /><em>這週有空嗎？</em> <span className="question-mark">👀</span></h1>
-          <p className="hero-subtitle">有人偷偷幫你安排了一個約會。</p>
-          <button className="primary-button hero-button" onClick={beginInvitation}>看看是什麼 <span>💌</span></button>
-          <div className="scroll-hint"><ArrowDown size={16} /> scroll slowly</div>
-        </section>
-      )}
+    {step === 2 && <section className="four-step-card choice-step">
+      <p className="step-kicker">02 / CHOOSE A DAY</p><div className="step-icon"><CalendarDays size={42} /></div>
+      <h2>那我們，<br /><em>哪天見？</em></h2><p className="step-copy">選一個明天以後，你有空的日子。</p>
+      <label className="date-input-wrap" htmlFor="date-choice"><span>DATE</span><input id="date-choice" type="date" min={getTomorrowDate()} value={selectedDate} onChange={chooseDate} /></label>
+      <button className="primary-button next-button" onClick={goToFood} disabled={!isFutureDate(selectedDate)}>就這天！❤</button>
+    </section>}
 
-      {stage !== 'intro' && stage !== 'celebrating' && stage !== 'date-selection' && (
-        <>
-          <section className="invitation-section section-pad" id="invitation">
-            <div className="section-label">01 / THE INVITATION</div>
-            <h2>{dateConfig.myName}<br /><em>想約 {dateConfig.partnerName} 去約會</em> <span>❤️</span></h2>
-            <p className="section-copy">不用準備什麼，<br />只要把那天的時間留給我就好了。</p>
-            <div className="info-grid">
-              <InfoCard icon={<Clock3 />} label="TIME" value={dateConfig.time} />
-              <InfoCard icon={<MapPin />} label="MEET AT" value={dateConfig.meetingLocation} />
-              <InfoCard icon={<Sparkles />} label="DRESS CODE" value={dateConfig.dressCode} />
-            </div>
-          </section>
+    {step === 3 && <section className="four-step-card choice-step">
+      <p className="step-kicker">03 / PICK SOMETHING DELICIOUS</p><div className="step-icon food-icon">🍽️</div>
+      <h2>那天想吃<br /><em>什麼呢？</em></h2><p className="step-copy">放心，這次讓安安決定。</p>
+      <div className="food-options">{dateConfig.dinnerOptions.map((option) => <button type="button" className={`food-option ${selectedDinner === option ? 'is-selected' : ''}`} key={option} onClick={() => setSelectedDinner(option)}>{option}</button>)}</div>
+      <button className="primary-button next-button" onClick={() => setStep(4)} disabled={!selectedDinner}>決定好了 ♥</button>
+    </section>}
 
-          <section className="question-section section-pad" id="question">
-            <div className="question-card">
-              <div className="stamp">MADE WITH<br /><span>LOVE</span></div>
-              <p className="section-label">02 / ONE LAST QUESTION</p>
-              <h2>所以……</h2>
-              <p className="question-text">{dateConfig.partnerName}，要不要跟<br />{dateConfig.myName} 去約會？ <span>🥺❤️</span></p>
-              <div className="answer-area" ref={answerAreaRef}>
-                <button ref={yesButtonRef} className="yes-button" style={{ transform: `scale(${noScale})` }} onClick={acceptDate}><Heart size={20} fill="currentColor" /> 要！</button>
-                <button ref={noButtonRef} className="no-button" style={escapeCount ? { position: 'absolute', left: noPosition.left, top: noPosition.top } : undefined} onMouseEnter={moveNoButton} onTouchStart={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{noMessage}</button>
-              </div>
-              <p className="tiny-note">先選擇要不要，再一起決定哪一天 ❤️</p>
-            </div>
-          </section>
-        </>
-      )}
-
-      {stage === 'date-selection' && <DateSelection selectedDate={selectedDate} onChange={setSelectedDate} selectedDinner={selectedDinner} onDinnerChange={setSelectedDinner} onConfirm={confirmDate} />}
-      {stage === 'celebrating' && <Celebration hearts={hearts} />}
-      {stage === 'success' && <SuccessScreen selectedDate={selectedDate} selectedDinner={selectedDinner} />}
-    </main>
-  );
-}
-
-function InfoCard({ icon, label, value }) {
-  return <article className="info-card"><div className="info-icon">{icon}</div><div><div className="info-label">{label}</div><div className="info-value">{value}</div></div></article>;
-}
-
-function DatePickerCard({ selectedDate, onChange }) {
-  return <article className="info-card date-picker-card"><div className="info-icon"><CalendarDays /></div><div><div className="info-label">DATE</div><label className="date-picker-label" htmlFor="date-choice">選一個你有空的日子</label><input id="date-choice" type="date" min={getTomorrowDate()} value={selectedDate} onChange={(event) => onChange(event.target.value)} /></div></article>;
-}
-
-function DateSelection({ selectedDate, onChange, selectedDinner, onDinnerChange, onConfirm }) {
-  return <section className="date-selection-screen section-pad"><div className="question-card date-selection-card"><div className="section-label">03 / PICK OUR DAY</div><div className="date-selection-icon"><CalendarDays size={30} /></div><h2>那麼，<br /><em>哪一天屬於我們？</em></h2><p className="question-text">選一個未來有空的日子，<br />再挑一個想和李小胖一起吃的晚餐。</p><DatePickerCard selectedDate={selectedDate} onChange={onChange} /><div className="dinner-picker"><div className="info-label">DINNER</div><p>今天想吃哪一種？</p><div className="dinner-options">{dateConfig.dinnerOptions.map((option) => <button type="button" className={`dinner-option ${selectedDinner === option ? 'is-selected' : ''}`} key={option} onClick={() => onDinnerChange(option)}>{option}</button>)}</div></div><button className="primary-button confirm-date-button" onClick={onConfirm} disabled={!isFutureDate(selectedDate) || !selectedDinner}><Check size={18} /> 確認這一天</button><p className="tiny-note">只能選明天以後的日期喔</p></div></section>;
-}
-
-function ScheduleSection() {
-  return <section className="schedule-section section-pad"><div className="section-label">04 / THE LITTLE PLAN</div><div className="split-heading"><h2>這一天，<br /><em>交給我安排。</em></h2><p>安安只要準時出現，剩下的風景，我想和你一起看。</p></div><div className="timeline">{dateConfig.schedule.map((item) => <ScheduleItem key={`${item.time}-${item.title}`} item={item} />)}</div></section>;
-}
-
-function QuoteSection() {
-  return <section className="quote-section section-pad"><p>安安不用想要去哪裡。</p><p>也不用想要吃什麼。</p><p className="quote-accent">這次全部交給李小胖。</p><strong>你只需要負責出現 <span>❤️</span></strong></section>;
-}
-
-function ScheduleItem({ item }) {
-  return <article className="schedule-item"><div className="schedule-time">{item.time}</div><div className="schedule-dot"><span>{item.icon}</span></div><div className="schedule-detail"><h3>{item.title}</h3><p>{item.description}</p></div></article>;
-}
-
-function Celebration({ hearts }) {
-  return <section className="celebration-screen"><div className="celebration-copy"><div className="celebration-heart"><Heart size={76} fill="currentColor" /></div><h2>YAY! <span>🎉</span></h2><p>安安答應了這個約會！</p></div><div className="celebration-particles" aria-hidden="true">{hearts.map((heart) => <span key={heart.id} style={{ left: heart.left, animationDelay: heart.delay }}>{heart.symbol}</span>)}</div></section>;
-}
-
-function SuccessScreen({ selectedDate, selectedDinner }) {
-  return <><section className="success-screen section-pad"><div className="success-badge"><Check size={18} /> CONFIRMED</div><p className="eyebrow">IT'S A DATE</p><h1>安安的約會<br /><em>預約成功！</em> ❤️</h1><p className="success-copy">李小胖就知道你會答應 😌<br />那天見，安安。</p><div className="confirmed-details"><InfoCard icon={<CalendarDays />} label="DATE" value={formatDate(selectedDate)} /><InfoCard icon={<Clock3 />} label="TIME" value={dateConfig.time} /><InfoCard icon={<MapPin />} label="MEET AT" value={dateConfig.meetingLocation} /><InfoCard icon={<Sparkles />} label="DINNER" value={selectedDinner} /></div></section><ScheduleSection /><QuoteSection /><section className="success-ticket-section section-pad"><Ticket selectedDate={selectedDate} selectedDinner={selectedDinner} /><button className="secondary-button" onClick={() => window.print()}><Camera size={17} /> Screenshot this page</button></section></>;
-}
-
-function Ticket({ selectedDate, selectedDinner }) {
-  return <article className="ticket"><div className="ticket-top"><span>DATE TICKET</span><span>NO. 001</span></div><div className="ticket-main"><div className="ticket-title">Admit One <span>❤️</span></div><div className="ticket-rows"><p><span>FOR</span>{dateConfig.partnerName}</p><p><span>WITH</span>{dateConfig.myName}</p><p><span>DATE</span>{formatDate(selectedDate)}</p><p><span>DINNER</span>{selectedDinner}</p><p><span>LOCATION</span>Secret</p></div></div><div className="barcode" aria-hidden="true">|||| ||| |||| | ||| |||| || | |||| |||</div></article>;
+    {step === 4 && <section className="four-step-card letter-step">
+      <p className="step-kicker">04 / A LITTLE LETTER</p><div className="letter-flower">🌷</div>
+      <h2>給安安的一封<br /><em>小情書</em></h2>
+      <div className="letter-content"><p>安安：</p><p>謝謝你願意把一天的時間留給李小胖。其實去哪裡、吃什麼，都沒有那麼重要。</p><p>重要的是，這一天我想和你一起慢慢走、慢慢聊，把普通的午後變成只屬於我們的回憶。</p><p>日期是 <strong>{formatDate(selectedDate)}</strong>，晚餐是 <strong>{selectedDinner}</strong>。我會好好期待那天的到來。</p><p className="letter-signature">那天見，安安<br />一直想見你的 李小胖 <span>♡</span></p></div>
+      <button className="secondary-button restart-button" onClick={restart}><RotateCcw size={17} /> 再看一次</button>
+    </section>}
+  </main>;
 }
 
 createRoot(document.getElementById('root')).render(<App />);
