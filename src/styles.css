@@ -80,7 +80,7 @@ button {
 .section-pad {
     width: min(100%, 1060px);
     margin: 0 auto;
-    padding: 100px 24px;
+    padding: 64px 24px;
     position: relative;
     z-index: 1;
 }
@@ -236,7 +236,7 @@ h2 em {
 }
 
 .invitation-section {
-    padding-top: 140px;
+    padding-top: 88px;
 }
 
 .section-label {
@@ -256,7 +256,7 @@ h2 em {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
-    margin-top: 54px;
+    margin-top: 34px;
 }
 
 .info-card {
@@ -325,7 +325,7 @@ h2 em {
 }
 
 .schedule-section {
-    padding-top: 125px;
+    padding-top: 80px;
 }
 
 .split-heading {
@@ -333,7 +333,7 @@ h2 em {
     justify-content: space-between;
     align-items: end;
     gap: 40px;
-    margin-bottom: 55px;
+    margin-bottom: 34px;
 }
 
 .split-heading h2 {
@@ -358,7 +358,7 @@ h2 em {
     grid-template-columns: 90px 52px 1fr;
     gap: 20px;
     align-items: center;
-    min-height: 116px;
+    min-height: 88px;
     border-bottom: 1px solid var(--line);
 }
 
@@ -403,8 +403,8 @@ h2 em {
 
 .quote-section {
     text-align: center;
-    padding-top: 155px;
-    padding-bottom: 155px;
+    padding-top: 88px;
+    padding-bottom: 88px;
 }
 
 .quote-section p {
@@ -421,7 +421,7 @@ h2 em {
 .quote-section strong {
     display: block;
     font-size: 18px;
-    margin-top: 42px;
+    margin-top: 28px;
 }
 
 .quote-section strong span {
@@ -429,8 +429,8 @@ h2 em {
 }
 
 .question-section {
-    padding-top: 80px;
-    padding-bottom: 120px;
+    padding-top: 56px;
+    padding-bottom: 76px;
 }
 
 .date-selection-screen {
@@ -475,7 +475,7 @@ h2 em {
     text-align: left;
 }
 
-.dinner-picker > p {
+.dinner-picker>p {
     color: var(--muted);
     font-size: 13px;
     margin: 7px 0 12px;
@@ -518,7 +518,7 @@ h2 em {
 .question-card {
     background: #fff;
     border-radius: 30px;
-    padding: 62px clamp(22px, 7vw, 75px) 55px;
+    padding: 48px clamp(22px, 7vw, 75px) 42px;
     text-align: center;
     box-shadow: 0 25px 70px rgba(109, 73, 76, .1);
     position: relative;
@@ -546,11 +546,11 @@ h2 em {
     font-size: clamp(20px, 4vw, 29px);
     font-weight: 600;
     line-height: 1.65;
-    margin-bottom: 40px;
+    margin-bottom: 26px;
 }
 
 .answer-area {
-    min-height: 120px;
+    min-height: 96px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -586,7 +586,7 @@ h2 em {
 .tiny-note {
     color: #c4afb0;
     font-size: 11px;
-    margin: 30px 0 0;
+    margin: 20px 0 0;
 }
 
 .stamp {
@@ -682,7 +682,7 @@ h2 em {
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
     width: min(100%, 700px);
-    margin: 45px 0;
+    margin: 28px 0;
     text-align: left;
 }
 
@@ -850,7 +850,7 @@ h2 em {
 
 @media (max-width: 700px) {
     .section-pad {
-        padding: 78px 20px;
+        padding: 48px 16px;
     }
 
     .hero-screen {
@@ -862,7 +862,7 @@ h2 em {
     }
 
     .scroll-hint {
-        margin-top: 56px;
+        margin-top: 40px;
     }
 
     .info-grid {
@@ -870,8 +870,8 @@ h2 em {
     }
 
     .info-card {
-        min-height: 128px;
-        padding: 17px;
+        min-height: 108px;
+        padding: 14px;
     }
 
     .date-picker-card {
@@ -880,17 +880,17 @@ h2 em {
 
     .split-heading {
         display: block;
-        margin-bottom: 38px;
+        margin-bottom: 26px;
     }
 
     .split-heading p {
-        margin-top: 20px;
+        margin-top: 14px;
     }
 
     .schedule-item {
         grid-template-columns: 55px 42px 1fr;
         gap: 12px;
-        min-height: 103px;
+        min-height: 82px;
     }
 
     .schedule-dot {
@@ -906,7 +906,7 @@ h2 em {
     }
 
     .question-card {
-        padding: 50px 18px 40px;
+        padding: 40px 16px 32px;
     }
 
     .stamp {
@@ -918,7 +918,7 @@ h2 em {
     .answer-area {
         flex-direction: column;
         gap: 14px;
-        min-height: 135px;
+        min-height: 116px;
     }
 
     .no-button {
@@ -926,8 +926,8 @@ h2 em {
     }
 
     .confirmed-details {
-        grid-template-columns: 1fr;
-        margin: 32px 0;
+        grid-template-columns: 1fr 1fr;
+        margin: 24px 0;
         width: 100%;
     }
 
