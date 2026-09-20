@@ -469,6 +469,42 @@ h2 em {
     background: var(--cream);
 }
 
+.dinner-picker {
+    width: min(100%, 520px);
+    margin: 0 auto 28px;
+    text-align: left;
+}
+
+.dinner-picker > p {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 7px 0 12px;
+}
+
+.dinner-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+}
+
+.dinner-option {
+    min-height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--ink);
+    background: #fff;
+    font-size: 13px;
+    transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease;
+}
+
+.dinner-option:hover,
+.dinner-option.is-selected {
+    border-color: var(--pink);
+    background: var(--blush);
+    color: var(--pink);
+    transform: translateY(-2px);
+}
+
 .confirm-date-button {
     margin-top: 4px;
 }
@@ -909,6 +945,10 @@ h2 em {
     .ticket-rows {
         grid-template-columns: repeat(2, 1fr);
         row-gap: 18px;
+    }
+
+    .dinner-options {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 

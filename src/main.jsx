@@ -11,6 +11,7 @@ const dateConfig = {
   time: '15:00',
   meetingLocation: '先保密 🤫',
   dressCode: '舒服、漂亮、你喜歡就好',
+  dinnerOptions: ['火鍋', '拉麵', '義大利麵', '水餃', '韓式', '牛排'],
   schedule: [
     { time: '15:00', icon: '☕', title: '下午茶', description: '先一起找個舒服的地方坐下來' },
     { time: '17:00', icon: '🚶', title: '一起散步', description: '慢慢走，慢慢聊今天的心事' },
@@ -69,6 +70,7 @@ function App() {
   const [noPosition, setNoPosition] = React.useState({ top: 0, left: 0 });
   const [hearts, setHearts] = React.useState([]);
   const [selectedDate, setSelectedDate] = React.useState(dateConfig.date);
+  const [selectedDinner, setSelectedDinner] = React.useState('');
   const noButtonRef = React.useRef(null);
 
   const beginInvitation = () => {
@@ -96,7 +98,7 @@ function App() {
   };
 
   const confirmDate = () => {
-    if (!isFutureDate(selectedDate)) return;
+    if (!isFutureDate(selectedDate) || !selectedDinner) return;
     const newHearts = Array.from({ length: 34 }, (_, index) => ({
       id: `${Date.now()}-${index}`,
       left: `${randomUnit() * 100}%`,
@@ -171,9 +173,9 @@ function App() {
         </>
       )}
 
-      {stage === 'date-selection' && <DateSelection selectedDate={selectedDate} onChange={setSelectedDate} onConfirm={confirmDate} />}
+      {stage === 'date-selection' && <DateSelection selectedDate={selectedDate} onChange={setSelectedDate} selectedDinner={selectedDinner} onDinnerChange={setSelectedDinner} onConfirm={confirmDate} />}
       {stage === 'celebrating' && <Celebration hearts={hearts} />}
-      {stage === 'success' && <SuccessScreen selectedDate={selectedDate} />}
+      {stage === 'success' && <SuccessScreen selectedDate={selectedDate} selectedDinner={selectedDinner} />}
     </main>
   );
 }
@@ -186,8 +188,8 @@ function DatePickerCard({ selectedDate, onChange }) {
   return <article className="info-card date-picker-card"><div className="info-icon"><CalendarDays /></div><div><div className="info-label">DATE</div><label className="date-picker-label" htmlFor="date-choice">選一個你有空的日子</label><input id="date-choice" type="date" min={getTomorrowDate()} value={selectedDate} onChange={(event) => onChange(event.target.value)} /></div></article>;
 }
 
-function DateSelection({ selectedDate, onChange, onConfirm }) {
-  return <section className="date-selection-screen section-pad"><div className="question-card date-selection-card"><div className="section-label">04 / PICK OUR DAY</div><div className="date-selection-icon"><CalendarDays size={30} /></div><h2>那麼，<br /><em>哪一天屬於我們？</em></h2><p className="question-text">選一個未來有空的日子，<br />李小胖會把這天留給安安。</p><DatePickerCard selectedDate={selectedDate} onChange={onChange} /><button className="primary-button confirm-date-button" onClick={onConfirm} disabled={!isFutureDate(selectedDate)}><Check size={18} /> 確認這一天</button><p className="tiny-note">只能選明天以後的日期喔</p></div></section>;
+function DateSelection({ selectedDate, onChange, selectedDinner, onDinnerChange, onConfirm }) {
+  return <section className="date-selection-screen section-pad"><div className="question-card date-selection-card"><div className="section-label">04 / PICK OUR DAY</div><div className="date-selection-icon"><CalendarDays size={30} /></div><h2>那麼，<br /><em>哪一天屬於我們？</em></h2><p className="question-text">選一個未來有空的日子，<br />再挑一個想和李小胖一起吃的晚餐。</p><DatePickerCard selectedDate={selectedDate} onChange={onChange} /><div className="dinner-picker"><div className="info-label">DINNER</div><p>今天想吃哪一種？</p><div className="dinner-options">{dateConfig.dinnerOptions.map((option) => <button type="button" className={`dinner-option ${selectedDinner === option ? 'is-selected' : ''}`} key={option} onClick={() => onDinnerChange(option)}>{option}</button>)}</div></div><button className="primary-button confirm-date-button" onClick={onConfirm} disabled={!isFutureDate(selectedDate) || !selectedDinner}><Check size={18} /> 確認這一天</button><p className="tiny-note">只能選明天以後的日期喔</p></div></section>;
 }
 
 function ScheduleItem({ item }) {
@@ -198,12 +200,12 @@ function Celebration({ hearts }) {
   return <section className="celebration-screen"><div className="celebration-copy"><div className="celebration-heart"><Heart size={76} fill="currentColor" /></div><h2>YAY! <span>🎉</span></h2><p>安安答應了這個約會！</p></div><div className="celebration-particles" aria-hidden="true">{hearts.map((heart) => <span key={heart.id} style={{ left: heart.left, animationDelay: heart.delay }}>{heart.symbol}</span>)}</div></section>;
 }
 
-function SuccessScreen({ selectedDate }) {
-  return <section className="success-screen section-pad"><div className="success-badge"><Check size={18} /> CONFIRMED</div><p className="eyebrow">IT'S A DATE</p><h1>安安的約會<br /><em>預約成功！</em> ❤️</h1><p className="success-copy">李小胖就知道你會答應 😌<br />那天見，安安。</p><div className="confirmed-details"><InfoCard icon={<CalendarDays />} label="DATE" value={formatDate(selectedDate)} /><InfoCard icon={<Clock3 />} label="TIME" value={dateConfig.time} /><InfoCard icon={<MapPin />} label="MEET AT" value={dateConfig.meetingLocation} /></div><Ticket selectedDate={selectedDate} /><button className="secondary-button" onClick={() => window.print()}><Camera size={17} /> Screenshot this page</button></section>;
+function SuccessScreen({ selectedDate, selectedDinner }) {
+  return <section className="success-screen section-pad"><div className="success-badge"><Check size={18} /> CONFIRMED</div><p className="eyebrow">IT'S A DATE</p><h1>安安的約會<br /><em>預約成功！</em> ❤️</h1><p className="success-copy">李小胖就知道你會答應 😌<br />那天見，安安。</p><div className="confirmed-details"><InfoCard icon={<CalendarDays />} label="DATE" value={formatDate(selectedDate)} /><InfoCard icon={<Clock3 />} label="TIME" value={dateConfig.time} /><InfoCard icon={<MapPin />} label="MEET AT" value={dateConfig.meetingLocation} /><InfoCard icon={<Sparkles />} label="DINNER" value={selectedDinner} /></div><Ticket selectedDate={selectedDate} selectedDinner={selectedDinner} /><button className="secondary-button" onClick={() => window.print()}><Camera size={17} /> Screenshot this page</button></section>;
 }
 
-function Ticket({ selectedDate }) {
-  return <article className="ticket"><div className="ticket-top"><span>DATE TICKET</span><span>NO. 001</span></div><div className="ticket-main"><div className="ticket-title">Admit One <span>❤️</span></div><div className="ticket-rows"><p><span>FOR</span>{dateConfig.partnerName}</p><p><span>WITH</span>{dateConfig.myName}</p><p><span>DATE</span>{formatDate(selectedDate)}</p><p><span>LOCATION</span>Secret</p></div></div><div className="barcode" aria-hidden="true">|||| ||| |||| | ||| |||| || | |||| |||</div></article>;
+function Ticket({ selectedDate, selectedDinner }) {
+  return <article className="ticket"><div className="ticket-top"><span>DATE TICKET</span><span>NO. 001</span></div><div className="ticket-main"><div className="ticket-title">Admit One <span>❤️</span></div><div className="ticket-rows"><p><span>FOR</span>{dateConfig.partnerName}</p><p><span>WITH</span>{dateConfig.myName}</p><p><span>DATE</span>{formatDate(selectedDate)}</p><p><span>DINNER</span>{selectedDinner}</p><p><span>LOCATION</span>Secret</p></div></div><div className="barcode" aria-hidden="true">|||| ||| |||| | ||| |||| || | |||| |||</div></article>;
 }
 
 createRoot(document.getElementById('root')).render(<App />);
