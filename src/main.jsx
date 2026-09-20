@@ -76,20 +76,18 @@ function App() {
 
   const getSafeNoPosition = () => {
     const button = noButtonRef.current;
-    const answerArea = answerAreaRef.current;
     const yesButton = yesButtonRef.current;
-    if (!button || !answerArea || !yesButton) return { left: 8, top: 8 };
+    if (!button || !yesButton) return { left: 12, top: 12 };
     const buttonRect = button.getBoundingClientRect();
-    const areaRect = answerArea.getBoundingClientRect();
     const yesRect = yesButton.getBoundingClientRect();
-    const padding = 8;
-    const maxLeft = Math.max(padding, areaRect.width - buttonRect.width - padding);
-    const maxTop = Math.max(padding, areaRect.height - buttonRect.height - padding);
+    const padding = 12;
+    const maxLeft = Math.max(padding, window.innerWidth - buttonRect.width - padding);
+    const maxTop = Math.max(padding, window.innerHeight - buttonRect.height - padding);
     const yesBox = {
-      left: yesRect.left - areaRect.left,
-      right: yesRect.right - areaRect.left,
-      top: yesRect.top - areaRect.top,
-      bottom: yesRect.bottom - areaRect.top,
+      left: yesRect.left,
+      right: yesRect.right,
+      top: yesRect.top,
+      bottom: yesRect.bottom,
     };
     for (let attempt = 0; attempt < 20; attempt += 1) {
       const left = Math.round(padding + randomUnit() * Math.max(0, maxLeft - padding));
@@ -109,7 +107,11 @@ function App() {
     if (step !== 1 || !escapeCount) return undefined;
     const keepNoButtonInside = () => setNoPosition(getSafeNoPosition());
     window.addEventListener('resize', keepNoButtonInside);
-    return () => window.removeEventListener('resize', keepNoButtonInside);
+    window.addEventListener('scroll', keepNoButtonInside, { passive: true });
+    return () => {
+      window.removeEventListener('resize', keepNoButtonInside);
+      window.removeEventListener('scroll', keepNoButtonInside);
+    };
   }, [step, escapeCount]);
 
   const noScale = Math.min(1 + escapeCount * 0.08, 1.9);
@@ -137,7 +139,7 @@ function App() {
       <p className="step-copy">{dateConfig.myName} 有一個小小的邀請，<br />想和你一起度過一個特別的日子。</p>
       <div className="step-answer-area" ref={answerAreaRef}>
         <button ref={yesButtonRef} className="yes-button" style={{ transform: `scale(${noScale})` }} onClick={() => setStep(2)}><Heart size={19} fill="currentColor" /> 好哦 ♥</button>
-        <button ref={noButtonRef} className="no-button" style={escapeCount ? { position: 'absolute', left: noPosition.left, top: noPosition.top } : undefined} onMouseEnter={moveNoButton} onTouchStart={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{escapeCount ? noMessage : 'No 👋'}</button>
+        <button ref={noButtonRef} className="no-button" style={escapeCount ? { position: 'fixed', left: noPosition.left, top: noPosition.top } : undefined} onMouseEnter={moveNoButton} onTouchStart={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{escapeCount ? noMessage : 'No 👋'}</button>
       </div>
       <p className="tiny-note">提示：這題沒有錯誤答案，但有一個比較可愛的答案。</p>
     </section>}
