@@ -53,6 +53,16 @@ function formatDate(date) {
   }).format(new Date(`${date}T00:00:00`)).replaceAll('/', ' / ');
 }
 
+function getTomorrowDate() {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow.toISOString().slice(0, 10);
+}
+
+function isFutureDate(date) {
+  return Boolean(date) && date >= getTomorrowDate();
+}
+
 function App() {
   const [stage, setStage] = React.useState('intro');
   const [escapeCount, setEscapeCount] = React.useState(0);
@@ -82,6 +92,11 @@ function App() {
   };
 
   const acceptDate = () => {
+    setStage('date-selection');
+  };
+
+  const confirmDate = () => {
+    if (!isFutureDate(selectedDate)) return;
     const newHearts = Array.from({ length: 34 }, (_, index) => ({
       id: `${Date.now()}-${index}`,
       left: `${randomUnit() * 100}%`,
@@ -116,14 +131,14 @@ function App() {
         </section>
       )}
 
-      {stage !== 'intro' && stage !== 'celebrating' && (
+      {stage !== 'intro' && stage !== 'celebrating' && stage !== 'date-selection' && (
         <>
           <section className="invitation-section section-pad" id="invitation">
             <div className="section-label">01 / THE INVITATION</div>
             <h2>{dateConfig.myName}<br /><em>想約 {dateConfig.partnerName} 去約會</em> <span>❤️</span></h2>
             <p className="section-copy">不用準備什麼，<br />只要把那天的時間留給我就好了。</p>
             <div className="info-grid">
-              <DatePickerCard selectedDate={selectedDate} onChange={setSelectedDate} />
+              <InfoCard icon={<CalendarDays />} label="DATE" value="答應後再一起選 ❤️" />
               <InfoCard icon={<Clock3 />} label="TIME" value={dateConfig.time} />
               <InfoCard icon={<MapPin />} label="MEET AT" value={dateConfig.meetingLocation} />
               <InfoCard icon={<Sparkles />} label="DRESS CODE" value={dateConfig.dressCode} />
@@ -147,15 +162,16 @@ function App() {
               <h2>所以……</h2>
               <p className="question-text">{dateConfig.partnerName}，要不要跟<br />{dateConfig.myName} 去約會？ <span>🥺❤️</span></p>
               <div className="answer-area">
-                <button className="yes-button" style={{ transform: `scale(${noScale})` }} onClick={acceptDate} disabled={!selectedDate}><Heart size={20} fill="currentColor" /> 要！</button>
+                <button className="yes-button" style={{ transform: `scale(${noScale})` }} onClick={acceptDate}><Heart size={20} fill="currentColor" /> 要！</button>
                 <button ref={noButtonRef} className="no-button" style={escapeCount ? { position: 'fixed', left: noPosition.left, top: noPosition.top } : undefined} onMouseEnter={moveNoButton} onTouchStart={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{noMessage}</button>
               </div>
-              <p className="tiny-note">{selectedDate ? `約會日期：${formatDate(selectedDate)}` : '先選一個你有空的日期，再答應我嘛 ❤️'}</p>
+              <p className="tiny-note">先選擇要不要，再一起決定哪一天 ❤️</p>
             </div>
           </section>
         </>
       )}
 
+      {stage === 'date-selection' && <DateSelection selectedDate={selectedDate} onChange={setSelectedDate} onConfirm={confirmDate} />}
       {stage === 'celebrating' && <Celebration hearts={hearts} />}
       {stage === 'success' && <SuccessScreen selectedDate={selectedDate} />}
     </main>
@@ -167,7 +183,11 @@ function InfoCard({ icon, label, value }) {
 }
 
 function DatePickerCard({ selectedDate, onChange }) {
-  return <article className="info-card date-picker-card"><div className="info-icon"><CalendarDays /></div><div><div className="info-label">DATE</div><label className="date-picker-label" htmlFor="date-choice">選一個你有空的日子</label><input id="date-choice" type="date" value={selectedDate} onChange={(event) => onChange(event.target.value)} /></div></article>;
+  return <article className="info-card date-picker-card"><div className="info-icon"><CalendarDays /></div><div><div className="info-label">DATE</div><label className="date-picker-label" htmlFor="date-choice">選一個你有空的日子</label><input id="date-choice" type="date" min={getTomorrowDate()} value={selectedDate} onChange={(event) => onChange(event.target.value)} /></div></article>;
+}
+
+function DateSelection({ selectedDate, onChange, onConfirm }) {
+  return <section className="date-selection-screen section-pad"><div className="question-card date-selection-card"><div className="section-label">04 / PICK OUR DAY</div><div className="date-selection-icon"><CalendarDays size={30} /></div><h2>那麼，<br /><em>哪一天屬於我們？</em></h2><p className="question-text">選一個未來有空的日子，<br />李小胖會把這天留給安安。</p><DatePickerCard selectedDate={selectedDate} onChange={onChange} /><button className="primary-button confirm-date-button" onClick={onConfirm} disabled={!isFutureDate(selectedDate)}><Check size={18} /> 確認這一天</button><p className="tiny-note">只能選明天以後的日期喔</p></div></section>;
 }
 
 function ScheduleItem({ item }) {

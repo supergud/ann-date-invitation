@@ -433,6 +433,52 @@ h2 em {
     padding-bottom: 120px;
 }
 
+.date-selection-screen {
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding-top: 60px;
+    padding-bottom: 60px;
+}
+
+.date-selection-card {
+    width: min(100%, 680px);
+}
+
+.date-selection-card .section-label {
+    margin-bottom: 22px;
+}
+
+.date-selection-icon {
+    color: var(--pink);
+    margin-bottom: 18px;
+}
+
+.date-selection-card h2 {
+    font-size: clamp(38px, 7vw, 62px);
+}
+
+.date-selection-card .question-text {
+    margin-bottom: 28px;
+}
+
+.date-selection-card .date-picker-card {
+    width: min(100%, 360px);
+    margin: 0 auto 24px;
+    text-align: left;
+    background: var(--cream);
+}
+
+.confirm-date-button {
+    margin-top: 4px;
+}
+
+.confirm-date-button:disabled {
+    cursor: not-allowed;
+    opacity: .45;
+    box-shadow: none;
+}
+
 .question-card {
     background: #fff;
     border-radius: 30px;
