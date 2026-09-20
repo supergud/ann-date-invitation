@@ -114,6 +114,11 @@ function App() {
     };
   }, [step, escapeCount]);
 
+  React.useLayoutEffect(() => {
+    if (step !== 1 || !escapeCount) return;
+    setNoPosition(getSafeNoPosition());
+  }, [step, escapeCount]);
+
   const noScale = Math.min(1 + escapeCount * 0.08, 1.9);
   const noMessage = escapeMessages[Math.min(escapeCount, escapeMessages.length - 1)];
   const chooseDate = (event) => setSelectedDate(event.target.value);
