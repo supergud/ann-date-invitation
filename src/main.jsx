@@ -180,20 +180,10 @@ function App() {
             </div>
           </section>
 
-          <section className="schedule-section section-pad">
-            <div className="section-label">02 / THE LITTLE PLAN</div>
-            <div className="split-heading"><h2>這一天，<br /><em>交給我安排。</em></h2><p>安安只要準時出現，剩下的風景，我想和你一起看。</p></div>
-            <div className="timeline">
-              {dateConfig.schedule.map((item) => <ScheduleItem key={`${item.time}-${item.title}`} item={item} />)}
-            </div>
-          </section>
-
-          <section className="quote-section section-pad"><p>安安不用想要去哪裡。</p><p>也不用想要吃什麼。</p><p className="quote-accent">這次全部交給李小胖。</p><strong>你只需要負責出現 <span>❤️</span></strong></section>
-
           <section className="question-section section-pad" id="question">
             <div className="question-card">
               <div className="stamp">MADE WITH<br /><span>LOVE</span></div>
-              <p className="section-label">03 / ONE LAST QUESTION</p>
+              <p className="section-label">02 / ONE LAST QUESTION</p>
               <h2>所以……</h2>
               <p className="question-text">{dateConfig.partnerName}，要不要跟<br />{dateConfig.myName} 去約會？ <span>🥺❤️</span></p>
               <div className="answer-area" ref={answerAreaRef}>
@@ -222,7 +212,15 @@ function DatePickerCard({ selectedDate, onChange }) {
 }
 
 function DateSelection({ selectedDate, onChange, selectedDinner, onDinnerChange, onConfirm }) {
-  return <section className="date-selection-screen section-pad"><div className="question-card date-selection-card"><div className="section-label">04 / PICK OUR DAY</div><div className="date-selection-icon"><CalendarDays size={30} /></div><h2>那麼，<br /><em>哪一天屬於我們？</em></h2><p className="question-text">選一個未來有空的日子，<br />再挑一個想和李小胖一起吃的晚餐。</p><DatePickerCard selectedDate={selectedDate} onChange={onChange} /><div className="dinner-picker"><div className="info-label">DINNER</div><p>今天想吃哪一種？</p><div className="dinner-options">{dateConfig.dinnerOptions.map((option) => <button type="button" className={`dinner-option ${selectedDinner === option ? 'is-selected' : ''}`} key={option} onClick={() => onDinnerChange(option)}>{option}</button>)}</div></div><button className="primary-button confirm-date-button" onClick={onConfirm} disabled={!isFutureDate(selectedDate) || !selectedDinner}><Check size={18} /> 確認這一天</button><p className="tiny-note">只能選明天以後的日期喔</p></div></section>;
+  return <section className="date-selection-screen section-pad"><div className="question-card date-selection-card"><div className="section-label">03 / PICK OUR DAY</div><div className="date-selection-icon"><CalendarDays size={30} /></div><h2>那麼，<br /><em>哪一天屬於我們？</em></h2><p className="question-text">選一個未來有空的日子，<br />再挑一個想和李小胖一起吃的晚餐。</p><DatePickerCard selectedDate={selectedDate} onChange={onChange} /><div className="dinner-picker"><div className="info-label">DINNER</div><p>今天想吃哪一種？</p><div className="dinner-options">{dateConfig.dinnerOptions.map((option) => <button type="button" className={`dinner-option ${selectedDinner === option ? 'is-selected' : ''}`} key={option} onClick={() => onDinnerChange(option)}>{option}</button>)}</div></div><button className="primary-button confirm-date-button" onClick={onConfirm} disabled={!isFutureDate(selectedDate) || !selectedDinner}><Check size={18} /> 確認這一天</button><p className="tiny-note">只能選明天以後的日期喔</p></div></section>;
+}
+
+function ScheduleSection() {
+  return <section className="schedule-section section-pad"><div className="section-label">04 / THE LITTLE PLAN</div><div className="split-heading"><h2>這一天，<br /><em>交給我安排。</em></h2><p>安安只要準時出現，剩下的風景，我想和你一起看。</p></div><div className="timeline">{dateConfig.schedule.map((item) => <ScheduleItem key={`${item.time}-${item.title}`} item={item} />)}</div></section>;
+}
+
+function QuoteSection() {
+  return <section className="quote-section section-pad"><p>安安不用想要去哪裡。</p><p>也不用想要吃什麼。</p><p className="quote-accent">這次全部交給李小胖。</p><strong>你只需要負責出現 <span>❤️</span></strong></section>;
 }
 
 function ScheduleItem({ item }) {
@@ -234,7 +232,7 @@ function Celebration({ hearts }) {
 }
 
 function SuccessScreen({ selectedDate, selectedDinner }) {
-  return <section className="success-screen section-pad"><div className="success-badge"><Check size={18} /> CONFIRMED</div><p className="eyebrow">IT'S A DATE</p><h1>安安的約會<br /><em>預約成功！</em> ❤️</h1><p className="success-copy">李小胖就知道你會答應 😌<br />那天見，安安。</p><div className="confirmed-details"><InfoCard icon={<CalendarDays />} label="DATE" value={formatDate(selectedDate)} /><InfoCard icon={<Clock3 />} label="TIME" value={dateConfig.time} /><InfoCard icon={<MapPin />} label="MEET AT" value={dateConfig.meetingLocation} /><InfoCard icon={<Sparkles />} label="DINNER" value={selectedDinner} /></div><Ticket selectedDate={selectedDate} selectedDinner={selectedDinner} /><button className="secondary-button" onClick={() => window.print()}><Camera size={17} /> Screenshot this page</button></section>;
+  return <><section className="success-screen section-pad"><div className="success-badge"><Check size={18} /> CONFIRMED</div><p className="eyebrow">IT'S A DATE</p><h1>安安的約會<br /><em>預約成功！</em> ❤️</h1><p className="success-copy">李小胖就知道你會答應 😌<br />那天見，安安。</p><div className="confirmed-details"><InfoCard icon={<CalendarDays />} label="DATE" value={formatDate(selectedDate)} /><InfoCard icon={<Clock3 />} label="TIME" value={dateConfig.time} /><InfoCard icon={<MapPin />} label="MEET AT" value={dateConfig.meetingLocation} /><InfoCard icon={<Sparkles />} label="DINNER" value={selectedDinner} /></div></section><ScheduleSection /><QuoteSection /><section className="success-ticket-section section-pad"><Ticket selectedDate={selectedDate} selectedDinner={selectedDinner} /><button className="secondary-button" onClick={() => window.print()}><Camera size={17} /> Screenshot this page</button></section></>;
 }
 
 function Ticket({ selectedDate, selectedDinner }) {
