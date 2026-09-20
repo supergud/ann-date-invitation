@@ -33,18 +33,6 @@ const escapeMessages = [
   '只能選要 ❤️',
 ];
 
-function randomUnit() {
-  const values = new Uint32Array(1);
-  crypto.getRandomValues(values);
-  return values[0] / 2 ** 32;
-}
-
-function celebrationSymbol(index) {
-  if (index % 4 === 0) return '🎉';
-  if (index % 5 === 0) return '✨';
-  return '❤';
-}
-
 function formatDate(date) {
   if (!date) return dateConfig.datePlaceholder;
   return new Intl.DateTimeFormat('zh-TW', {
@@ -72,7 +60,6 @@ function App() {
   const [selectedDinner, setSelectedDinner] = React.useState('');
   const noButtonRef = React.useRef(null);
   const yesButtonRef = React.useRef(null);
-  const answerAreaRef = React.useRef(null);
   const noMoveLockedRef = React.useRef(false);
 
   const getSafeNoPosition = () => {
@@ -90,13 +77,22 @@ function App() {
       top: yesRect.top,
       bottom: yesRect.bottom,
     };
-    for (let attempt = 0; attempt < 20; attempt += 1) {
-      const left = Math.round(padding + randomUnit() * Math.max(0, maxLeft - padding));
-      const top = Math.round(padding + randomUnit() * Math.max(0, maxTop - padding));
+    const candidates = [
+      { left: padding, top: padding },
+      { left: maxLeft, top: padding },
+      { left: padding, top: maxTop },
+      { left: maxLeft, top: maxTop },
+      { left: Math.round(maxLeft / 2), top: padding },
+      { left: Math.round(maxLeft / 2), top: maxTop },
+      { left: padding, top: Math.round(maxTop / 2) },
+      { left: maxLeft, top: Math.round(maxTop / 2) },
+    ];
+
+    for (const { left, top } of candidates) {
       const overlaps = left < yesBox.right && left + buttonRect.width > yesBox.left && top < yesBox.bottom && top + buttonRect.height > yesBox.top;
       if (!overlaps) return { left, top };
     }
-    return { left: padding, top: maxTop };
+    return { left: maxLeft, top: maxTop };
   };
 
   const moveNoButton = () => {
@@ -149,7 +145,7 @@ function App() {
       <div className="step-icon"><Heart size={48} fill="currentColor" /></div>
       <h1>🌸 要不要跟我<br /><em>去約會？</em> 🌸</h1>
       <p className="step-copy">{dateConfig.myName} 有一個小小的邀請，<br />想和你一起度過一個特別的日子。</p>
-      <div className="step-answer-area" ref={answerAreaRef}>
+      <div className="step-answer-area">
         <button ref={yesButtonRef} className="yes-button" style={{ transform: `scale(${noScale})` }} onClick={() => setStep(2)}><Heart size={19} fill="currentColor" /> 好哦 ♥</button>
         <button ref={noButtonRef} className="no-button" style={escapeCount ? { position: 'fixed', left: noPosition.left, top: noPosition.top } : undefined} onMouseEnter={moveNoButton} onTouchStart={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{escapeCount ? noMessage : 'No 👋'}</button>
       </div>
