@@ -11,7 +11,7 @@ const dateConfig = {
   time: '15:00',
   meetingLocation: '先保密 🤫',
   dressCode: '舒服、漂亮、你喜歡就好',
-  dinnerOptions: ['火鍋', '牛肉麵', '滷肉飯', '夜市小吃', '烤肉', '拉麵'],
+  dinnerOptions: ['火鍋', '拉麵', '義大利麵', '水餃', '韓式', '牛排'],
   schedule: [
     { time: '15:00', icon: '☕', title: '下午茶', description: '先一起找個舒服的地方坐下來' },
     { time: '17:00', icon: '🚶', title: '一起散步', description: '慢慢走，慢慢聊今天的心事' },
