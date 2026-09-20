@@ -6,7 +6,8 @@ import './styles.css';
 const dateConfig = {
   partnerName: '安安',
   myName: '李小胖',
-  date: '2026 / XX / XX',
+  date: '',
+  datePlaceholder: '請選擇約會日期',
   time: '15:00',
   meetingLocation: '先保密 🤫',
   dressCode: '舒服、漂亮、你喜歡就好',
@@ -43,11 +44,21 @@ function celebrationSymbol(index) {
   return '❤';
 }
 
+function formatDate(date) {
+  if (!date) return dateConfig.datePlaceholder;
+  return new Intl.DateTimeFormat('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(`${date}T00:00:00`)).replaceAll('/', ' / ');
+}
+
 function App() {
   const [stage, setStage] = React.useState('intro');
   const [escapeCount, setEscapeCount] = React.useState(0);
   const [noPosition, setNoPosition] = React.useState({ top: 0, left: 0 });
   const [hearts, setHearts] = React.useState([]);
+  const [selectedDate, setSelectedDate] = React.useState(dateConfig.date);
   const noButtonRef = React.useRef(null);
 
   const beginInvitation = () => {
@@ -112,7 +123,7 @@ function App() {
             <h2>{dateConfig.myName}<br /><em>想約 {dateConfig.partnerName} 去約會</em> <span>❤️</span></h2>
             <p className="section-copy">不用準備什麼，<br />只要把那天的時間留給我就好了。</p>
             <div className="info-grid">
-              <InfoCard icon={<CalendarDays />} label="DATE" value={dateConfig.date} />
+              <DatePickerCard selectedDate={selectedDate} onChange={setSelectedDate} />
               <InfoCard icon={<Clock3 />} label="TIME" value={dateConfig.time} />
               <InfoCard icon={<MapPin />} label="MEET AT" value={dateConfig.meetingLocation} />
               <InfoCard icon={<Sparkles />} label="DRESS CODE" value={dateConfig.dressCode} />
@@ -136,23 +147,27 @@ function App() {
               <h2>所以……</h2>
               <p className="question-text">{dateConfig.partnerName}，要不要跟<br />{dateConfig.myName} 去約會？ <span>🥺❤️</span></p>
               <div className="answer-area">
-                <button className="yes-button" style={{ transform: `scale(${noScale})` }} onClick={acceptDate}><Heart size={20} fill="currentColor" /> 要！</button>
+                <button className="yes-button" style={{ transform: `scale(${noScale})` }} onClick={acceptDate} disabled={!selectedDate}><Heart size={20} fill="currentColor" /> 要！</button>
                 <button ref={noButtonRef} className="no-button" style={escapeCount ? { position: 'fixed', left: noPosition.left, top: noPosition.top } : undefined} onMouseEnter={moveNoButton} onTouchStart={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{noMessage}</button>
               </div>
-              <p className="tiny-note">選擇很簡單，對吧？</p>
+              <p className="tiny-note">{selectedDate ? `約會日期：${formatDate(selectedDate)}` : '先選一個你有空的日期，再答應我嘛 ❤️'}</p>
             </div>
           </section>
         </>
       )}
 
       {stage === 'celebrating' && <Celebration hearts={hearts} />}
-      {stage === 'success' && <SuccessScreen />}
+      {stage === 'success' && <SuccessScreen selectedDate={selectedDate} />}
     </main>
   );
 }
 
 function InfoCard({ icon, label, value }) {
   return <article className="info-card"><div className="info-icon">{icon}</div><div><div className="info-label">{label}</div><div className="info-value">{value}</div></div></article>;
+}
+
+function DatePickerCard({ selectedDate, onChange }) {
+  return <article className="info-card date-picker-card"><div className="info-icon"><CalendarDays /></div><div><div className="info-label">DATE</div><label className="date-picker-label" htmlFor="date-choice">選一個你有空的日子</label><input id="date-choice" type="date" value={selectedDate} onChange={(event) => onChange(event.target.value)} /></div></article>;
 }
 
 function ScheduleItem({ item }) {
@@ -163,12 +178,12 @@ function Celebration({ hearts }) {
   return <section className="celebration-screen"><div className="celebration-copy"><div className="celebration-heart"><Heart size={76} fill="currentColor" /></div><h2>YAY! <span>🎉</span></h2><p>安安答應了這個約會！</p></div><div className="celebration-particles" aria-hidden="true">{hearts.map((heart) => <span key={heart.id} style={{ left: heart.left, animationDelay: heart.delay }}>{heart.symbol}</span>)}</div></section>;
 }
 
-function SuccessScreen() {
-  return <section className="success-screen section-pad"><div className="success-badge"><Check size={18} /> CONFIRMED</div><p className="eyebrow">IT'S A DATE</p><h1>安安的約會<br /><em>預約成功！</em> ❤️</h1><p className="success-copy">李小胖就知道你會答應 😌<br />那天見，安安。</p><div className="confirmed-details"><InfoCard icon={<CalendarDays />} label="DATE" value={dateConfig.date} /><InfoCard icon={<Clock3 />} label="TIME" value={dateConfig.time} /><InfoCard icon={<MapPin />} label="MEET AT" value={dateConfig.meetingLocation} /></div><Ticket /><button className="secondary-button" onClick={() => window.print()}><Camera size={17} /> Screenshot this page</button></section>;
+function SuccessScreen({ selectedDate }) {
+  return <section className="success-screen section-pad"><div className="success-badge"><Check size={18} /> CONFIRMED</div><p className="eyebrow">IT'S A DATE</p><h1>安安的約會<br /><em>預約成功！</em> ❤️</h1><p className="success-copy">李小胖就知道你會答應 😌<br />那天見，安安。</p><div className="confirmed-details"><InfoCard icon={<CalendarDays />} label="DATE" value={formatDate(selectedDate)} /><InfoCard icon={<Clock3 />} label="TIME" value={dateConfig.time} /><InfoCard icon={<MapPin />} label="MEET AT" value={dateConfig.meetingLocation} /></div><Ticket selectedDate={selectedDate} /><button className="secondary-button" onClick={() => window.print()}><Camera size={17} /> Screenshot this page</button></section>;
 }
 
-function Ticket() {
-  return <article className="ticket"><div className="ticket-top"><span>DATE TICKET</span><span>NO. 001</span></div><div className="ticket-main"><div className="ticket-title">Admit One <span>❤️</span></div><div className="ticket-rows"><p><span>FOR</span>{dateConfig.partnerName}</p><p><span>WITH</span>{dateConfig.myName}</p><p><span>DATE</span>{dateConfig.date}</p><p><span>LOCATION</span>Secret</p></div></div><div className="barcode" aria-hidden="true">|||| ||| |||| | ||| |||| || | |||| |||</div></article>;
+function Ticket({ selectedDate }) {
+  return <article className="ticket"><div className="ticket-top"><span>DATE TICKET</span><span>NO. 001</span></div><div className="ticket-main"><div className="ticket-title">Admit One <span>❤️</span></div><div className="ticket-rows"><p><span>FOR</span>{dateConfig.partnerName}</p><p><span>WITH</span>{dateConfig.myName}</p><p><span>DATE</span>{formatDate(selectedDate)}</p><p><span>LOCATION</span>Secret</p></div></div><div className="barcode" aria-hidden="true">|||| ||| |||| | ||| |||| || | |||| |||</div></article>;
 }
 
 createRoot(document.getElementById('root')).render(<App />);

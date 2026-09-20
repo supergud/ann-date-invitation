@@ -141,10 +141,6 @@ h1,
 h2 {
     line-height: 1.15;
     letter-spacing: -.035em;
-}
-
-h1,
-h2 {
     font-size: clamp(40px, 9vw, 82px);
     margin-bottom: 22px;
     font-weight: 600;
@@ -298,6 +294,34 @@ h2 em {
     font-size: 14px;
     line-height: 1.5;
     font-weight: 600;
+}
+
+.date-picker-card {
+    grid-column: span 2;
+}
+
+.date-picker-label {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.date-picker-card input {
+    width: 100%;
+    min-height: 38px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0 10px;
+    color: var(--ink);
+    background: rgba(255, 248, 247, .8);
+    font: 600 13px 'DM Sans', sans-serif;
+}
+
+.date-picker-card input:focus {
+    outline: 2px solid rgba(255, 107, 129, .25);
+    border-color: var(--pink);
 }
 
 .schedule-section {
@@ -458,6 +482,12 @@ h2 em {
     min-height: 56px;
     padding: 0 28px;
     transform-origin: center;
+}
+
+.yes-button:disabled {
+    cursor: not-allowed;
+    opacity: .45;
+    box-shadow: none;
 }
 
 .no-button {
@@ -760,6 +790,10 @@ h2 em {
     .info-card {
         min-height: 128px;
         padding: 17px;
+    }
+
+    .date-picker-card {
+        grid-column: span 2;
     }
 
     .split-heading {

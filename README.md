@@ -15,11 +15,14 @@ npm run dev
 
 - `partnerName`：安安的名字
 - `myName`：邀請人的名字
-- `date`：日期
+- `date`：預設日期，留空時讓安安在網站上選擇
+- `datePlaceholder`：尚未選日期時的提示文字
 - `time`：時間
 - `meetingLocation`：集合地點
 - `dressCode`：Dress Code
 - `schedule`：行程陣列，每個項目包含 `time`、`icon`、`title`、`description`
+
+網站中的 DATE 卡片會讓安安直接選擇日期；選定的日期會同步帶到最後的確認畫面與約會券。
 
 配色與版面集中在 `src/styles.css` 最上方的 CSS 變數，例如 `--pink`、`--rose`、`--cream`。
 
