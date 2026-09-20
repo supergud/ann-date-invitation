@@ -550,7 +550,7 @@ h2 em {
 }
 
 .answer-area {
-    min-height: 96px;
+    min-height: 132px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -918,7 +918,7 @@ h2 em {
     .answer-area {
         flex-direction: column;
         gap: 14px;
-        min-height: 116px;
+        min-height: 186px;
     }
 
     .no-button {

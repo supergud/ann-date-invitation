@@ -72,6 +72,7 @@ function App() {
   const [selectedDate, setSelectedDate] = React.useState(dateConfig.date);
   const [selectedDinner, setSelectedDinner] = React.useState('');
   const noButtonRef = React.useRef(null);
+  const yesButtonRef = React.useRef(null);
   const answerAreaRef = React.useRef(null);
 
   const beginInvitation = () => {
@@ -79,21 +80,39 @@ function App() {
     window.setTimeout(() => document.getElementById('invitation')?.scrollIntoView({ behavior: 'smooth' }), 40);
   };
 
-  const moveNoButton = () => {
+  const getSafeNoPosition = () => {
     const button = noButtonRef.current;
     const answerArea = answerAreaRef.current;
-    if (!button || !answerArea) return;
+    const yesButton = yesButtonRef.current;
+    if (!button || !answerArea || !yesButton) return { left: 8, top: 8 };
     const buttonRect = button.getBoundingClientRect();
     const answerAreaRect = answerArea.getBoundingClientRect();
+    const yesButtonRect = yesButton.getBoundingClientRect();
     const padding = 8;
     const maxLeft = Math.max(padding, answerAreaRect.width - buttonRect.width - padding);
     const maxTop = Math.max(padding, answerAreaRect.height - buttonRect.height - padding);
+    const yesBox = {
+      left: yesButtonRect.left - answerAreaRect.left,
+      right: yesButtonRect.right - answerAreaRect.left,
+      top: yesButtonRect.top - answerAreaRect.top,
+      bottom: yesButtonRect.bottom - answerAreaRect.top,
+    };
+
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const left = Math.round(padding + randomUnit() * Math.max(0, maxLeft - padding));
+      const top = Math.round(padding + randomUnit() * Math.max(0, maxTop - padding));
+      const overlapsYes = left < yesBox.right && left + buttonRect.width > yesBox.left && top < yesBox.bottom && top + buttonRect.height > yesBox.top;
+      if (!overlapsYes) return { left, top };
+    }
+
+    return { left: padding, top: maxTop };
+  };
+
+  const moveNoButton = () => {
+    if (!noButtonRef.current || !answerAreaRef.current) return;
     const nextCount = escapeCount + 1;
     setEscapeCount(nextCount);
-    setNoPosition({
-      left: Math.round(padding + randomUnit() * Math.max(0, maxLeft - padding)),
-      top: Math.round(padding + randomUnit() * Math.max(0, maxTop - padding)),
-    });
+    setNoPosition(getSafeNoPosition());
   };
 
   React.useEffect(() => {
@@ -102,15 +121,7 @@ function App() {
       const button = noButtonRef.current;
       const answerArea = answerAreaRef.current;
       if (!button || !answerArea) return;
-      const buttonRect = button.getBoundingClientRect();
-      const answerAreaRect = answerArea.getBoundingClientRect();
-      const padding = 8;
-      const maxLeft = Math.max(padding, answerAreaRect.width - buttonRect.width - padding);
-      const maxTop = Math.max(padding, answerAreaRect.height - buttonRect.height - padding);
-      setNoPosition((position) => ({
-        left: Math.min(Math.max(padding, position.left), maxLeft),
-        top: Math.min(Math.max(padding, position.top), maxTop),
-      }));
+      setNoPosition(getSafeNoPosition());
     };
     window.addEventListener('resize', keepNoButtonInside);
     return () => window.removeEventListener('resize', keepNoButtonInside);
@@ -187,7 +198,7 @@ function App() {
               <h2>所以……</h2>
               <p className="question-text">{dateConfig.partnerName}，要不要跟<br />{dateConfig.myName} 去約會？ <span>🥺❤️</span></p>
               <div className="answer-area" ref={answerAreaRef}>
-                <button className="yes-button" style={{ transform: `scale(${noScale})` }} onClick={acceptDate}><Heart size={20} fill="currentColor" /> 要！</button>
+                <button ref={yesButtonRef} className="yes-button" style={{ transform: `scale(${noScale})` }} onClick={acceptDate}><Heart size={20} fill="currentColor" /> 要！</button>
                 <button ref={noButtonRef} className="no-button" style={escapeCount ? { position: 'absolute', left: noPosition.left, top: noPosition.top } : undefined} onMouseEnter={moveNoButton} onTouchStart={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{noMessage}</button>
               </div>
               <p className="tiny-note">先選擇要不要，再一起決定哪一天 ❤️</p>
