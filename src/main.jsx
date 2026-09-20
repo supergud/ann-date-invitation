@@ -174,7 +174,6 @@ function App() {
             <h2>{dateConfig.myName}<br /><em>想約 {dateConfig.partnerName} 去約會</em> <span>❤️</span></h2>
             <p className="section-copy">不用準備什麼，<br />只要把那天的時間留給我就好了。</p>
             <div className="info-grid">
-              <InfoCard icon={<CalendarDays />} label="DATE" value="答應後再一起選 ❤️" />
               <InfoCard icon={<Clock3 />} label="TIME" value={dateConfig.time} />
               <InfoCard icon={<MapPin />} label="MEET AT" value={dateConfig.meetingLocation} />
               <InfoCard icon={<Sparkles />} label="DRESS CODE" value={dateConfig.dressCode} />
