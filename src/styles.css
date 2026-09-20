@@ -574,14 +574,30 @@ h2 em {
 }
 
 .no-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: min(240px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
     min-height: 48px;
-    padding: 0 20px;
+    padding: 9px 16px;
     border-radius: 100px;
     border: 1px solid var(--line);
     color: var(--muted);
     background: #fffafa;
-    transition: left .4s cubic-bezier(.22, 1, .36, 1), top .4s cubic-bezier(.22, 1, .36, 1), transform .3s ease;
-    z-index: 20;
+    line-height: 1.35;
+    white-space: normal;
+    text-align: center;
+    z-index: 2;
+    transition: left .32s cubic-bezier(.22, 1, .36, 1), top .32s cubic-bezier(.22, 1, .36, 1), background .2s ease;
+}
+
+.no-button.is-escaped {
+    position: fixed;
+    z-index: 1000;
+    margin: 0;
+    visibility: visible;
+    opacity: 1;
 }
 
 .tiny-note {
@@ -1086,19 +1102,11 @@ h2 em {
 }
 
 .step-answer-area .no-button {
-    width: min(240px, calc(100vw - 24px));
-    max-width: calc(100vw - 24px);
-    min-height: 48px;
-    padding: 9px 16px;
-    line-height: 1.35;
-    white-space: normal;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    visibility: visible;
-    opacity: 1;
+    flex: 0 1 auto;
+}
+
+.step-answer-area .no-button.is-escaped {
     z-index: 1000;
-    transition: left .35s cubic-bezier(.22, 1, .36, 1), top .35s cubic-bezier(.22, 1, .36, 1), transform .25s ease;
 }
 
 .date-input-wrap {

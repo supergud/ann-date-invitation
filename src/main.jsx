@@ -88,10 +88,19 @@ function App() {
       { left: maxLeft, top: Math.round(maxTop / 2) },
     ];
 
-    for (const { left, top } of candidates) {
+    const orderedCandidates = candidates.slice(escapeCount % candidates.length).concat(candidates.slice(0, escapeCount % candidates.length));
+    for (const { left, top } of orderedCandidates) {
       const overlaps = left < yesBox.right && left + buttonRect.width > yesBox.left && top < yesBox.bottom && top + buttonRect.height > yesBox.top;
       if (!overlaps) return { left, top };
     }
+
+    for (let top = padding; top <= maxTop; top += 24) {
+      for (let left = padding; left <= maxLeft; left += 24) {
+        const overlaps = left < yesBox.right && left + buttonRect.width > yesBox.left && top < yesBox.bottom && top + buttonRect.height > yesBox.top;
+        if (!overlaps) return { left, top };
+      }
+    }
+
     return { left: maxLeft, top: maxTop };
   };
 
@@ -147,7 +156,7 @@ function App() {
       <p className="step-copy">{dateConfig.myName} 有一個小小的邀請，<br />想和你一起度過一個特別的日子。</p>
       <div className="step-answer-area">
         <button ref={yesButtonRef} className="yes-button" style={{ transform: `scale(${noScale})` }} onClick={() => setStep(2)}><Heart size={19} fill="currentColor" /> 好哦 ♥</button>
-        <button ref={noButtonRef} className="no-button" style={escapeCount ? { position: 'fixed', left: noPosition.left, top: noPosition.top } : undefined} onMouseEnter={moveNoButton} onTouchStart={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{escapeCount ? noMessage : 'No 👋'}</button>
+        <button ref={noButtonRef} className={`no-button ${escapeCount ? 'is-escaped' : ''}`} style={escapeCount ? { left: noPosition.left, top: noPosition.top } : undefined} onPointerEnter={moveNoButton} onPointerDown={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{escapeCount ? noMessage : 'No 👋'}</button>
       </div>
       <p className="tiny-note">提示：這題沒有錯誤答案，但有一個比較可愛的答案。</p>
     </section>}
