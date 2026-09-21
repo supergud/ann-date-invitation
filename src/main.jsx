@@ -52,83 +52,101 @@ function isFutureDate(date) {
   return Boolean(date) && date >= getTomorrowDate();
 }
 
+const ESCAPE_PADDING = 12;
+const ESCAPE_GAP = 14;
+const ESCAPE_COLUMNS = 4;
+const ESCAPE_ROWS = 3;
+
 function App() {
   const [step, setStep] = React.useState(1);
   const [escapeCount, setEscapeCount] = React.useState(0);
-  const [noPosition, setNoPosition] = React.useState({ top: 0, left: 0 });
+  const [noOffset, setNoOffset] = React.useState({ x: 0, y: 0 });
   const [selectedDate, setSelectedDate] = React.useState(dateConfig.date);
   const [selectedDinner, setSelectedDinner] = React.useState('');
   const noButtonRef = React.useRef(null);
   const yesButtonRef = React.useRef(null);
+  const noOffsetRef = React.useRef({ x: 0, y: 0 });
   const noMoveLockedRef = React.useRef(false);
+  const noMoveTimerRef = React.useRef(0);
 
-  const getSafeNoPosition = () => {
+  const applyNoOffset = (offset) => {
+    noOffsetRef.current = offset;
+    setNoOffset(offset);
+  };
+
+  // 以 offsetLeft/offsetTop 計算，不受任何 transform 影響，
+  // 逃跑範圍固定在卡片內，按鈕不會跑出畫面。
+  const getEscapeOffset = (moveIndex) => {
     const button = noButtonRef.current;
     const yesButton = yesButtonRef.current;
-    if (!button || !yesButton) return { left: 12, top: 12 };
-    const buttonRect = button.getBoundingClientRect();
-    const yesRect = yesButton.getBoundingClientRect();
-    const padding = 12;
-    const maxLeft = Math.max(padding, window.innerWidth - buttonRect.width - padding);
-    const maxTop = Math.max(padding, window.innerHeight - buttonRect.height - padding);
+    const area = button && button.offsetParent;
+    const card = area && area.offsetParent;
+    if (!button || !yesButton || !area || !card) return { x: 0, y: 0 };
+
+    const width = button.offsetWidth;
+    const height = button.offsetHeight;
+    const minX = ESCAPE_PADDING - area.offsetLeft;
+    const minY = ESCAPE_PADDING - area.offsetTop;
+    const maxX = Math.max(minX, card.clientWidth - ESCAPE_PADDING - width - area.offsetLeft);
+    const maxY = Math.max(minY, card.clientHeight - ESCAPE_PADDING - height - area.offsetTop);
+
+    // yes 按鈕是用 scale 放大的，量它的實際視覺大小、但位置用未變形的 offset。
+    const yesSize = yesButton.getBoundingClientRect();
+    const yesCenterX = yesButton.offsetLeft + yesButton.offsetWidth / 2;
+    const yesCenterY = yesButton.offsetTop + yesButton.offsetHeight / 2;
     const yesBox = {
-      left: yesRect.left,
-      right: yesRect.right,
-      top: yesRect.top,
-      bottom: yesRect.bottom,
+      left: yesCenterX - yesSize.width / 2 - ESCAPE_GAP,
+      right: yesCenterX + yesSize.width / 2 + ESCAPE_GAP,
+      top: yesCenterY - yesSize.height / 2 - ESCAPE_GAP,
+      bottom: yesCenterY + yesSize.height / 2 + ESCAPE_GAP,
     };
-    const candidates = [
-      { left: padding, top: padding },
-      { left: maxLeft, top: padding },
-      { left: padding, top: maxTop },
-      { left: maxLeft, top: maxTop },
-      { left: Math.round(maxLeft / 2), top: padding },
-      { left: Math.round(maxLeft / 2), top: maxTop },
-      { left: padding, top: Math.round(maxTop / 2) },
-      { left: maxLeft, top: Math.round(maxTop / 2) },
-    ];
 
-    const orderedCandidates = candidates.slice(escapeCount % candidates.length).concat(candidates.slice(0, escapeCount % candidates.length));
-    for (const { left, top } of orderedCandidates) {
-      const overlaps = left < yesBox.right && left + buttonRect.width > yesBox.left && top < yesBox.bottom && top + buttonRect.height > yesBox.top;
-      if (!overlaps) return { left, top };
-    }
-
-    for (let top = padding; top <= maxTop; top += 24) {
-      for (let left = padding; left <= maxLeft; left += 24) {
-        const overlaps = left < yesBox.right && left + buttonRect.width > yesBox.left && top < yesBox.bottom && top + buttonRect.height > yesBox.top;
-        if (!overlaps) return { left, top };
+    const fromX = button.offsetLeft + noOffsetRef.current.x;
+    const fromY = button.offsetTop + noOffsetRef.current.y;
+    const spots = [];
+    for (let row = 0; row < ESCAPE_ROWS; row += 1) {
+      for (let column = 0; column < ESCAPE_COLUMNS; column += 1) {
+        const x = Math.round(minX + ((maxX - minX) * column) / (ESCAPE_COLUMNS - 1));
+        const y = Math.round(minY + ((maxY - minY) * row) / (ESCAPE_ROWS - 1));
+        const hitsYes = x < yesBox.right && x + width > yesBox.left && y < yesBox.bottom && y + height > yesBox.top;
+        if (hitsYes) continue;
+        spots.push({ x, y, distance: Math.hypot(x - fromX, y - fromY) });
       }
     }
 
-    return { left: maxLeft, top: maxTop };
+    if (!spots.length) return { x: minX - button.offsetLeft, y: minY - button.offsetTop };
+
+    // 從離目前位置最遠的幾個位置挑一個，才不會又剛好跳到手指／游標底下。
+    spots.sort((a, b) => b.distance - a.distance);
+    const farthest = spots.slice(0, Math.min(3, spots.length));
+    const target = farthest[moveIndex % farthest.length];
+    return { x: target.x - button.offsetLeft, y: target.y - button.offsetTop };
   };
 
   const moveNoButton = () => {
     if (noMoveLockedRef.current) return;
     noMoveLockedRef.current = true;
-    setEscapeCount((count) => count + 1);
-    setNoPosition(getSafeNoPosition());
-    window.setTimeout(() => {
+    window.clearTimeout(noMoveTimerRef.current);
+    noMoveTimerRef.current = window.setTimeout(() => {
       noMoveLockedRef.current = false;
-    }, 450);
+    }, 260);
+    setEscapeCount((count) => count + 1);
   };
+
+  // 文字換行會改變按鈕高度，所以等這次 render 完成後再量、再定位。
+  React.useLayoutEffect(() => {
+    if (step !== 1 || !escapeCount) return;
+    applyNoOffset(getEscapeOffset(escapeCount));
+  }, [step, escapeCount]);
 
   React.useEffect(() => {
     if (step !== 1 || !escapeCount) return undefined;
-    const keepNoButtonInside = () => setNoPosition(getSafeNoPosition());
+    const keepNoButtonInside = () => applyNoOffset(getEscapeOffset(escapeCount));
     window.addEventListener('resize', keepNoButtonInside);
-    window.addEventListener('scroll', keepNoButtonInside, { passive: true });
-    return () => {
-      window.removeEventListener('resize', keepNoButtonInside);
-      window.removeEventListener('scroll', keepNoButtonInside);
-    };
+    return () => window.removeEventListener('resize', keepNoButtonInside);
   }, [step, escapeCount]);
 
-  React.useLayoutEffect(() => {
-    if (step !== 1 || !escapeCount) return;
-    setNoPosition(getSafeNoPosition());
-  }, [step, escapeCount]);
+  React.useEffect(() => () => window.clearTimeout(noMoveTimerRef.current), []);
 
   const noScale = Math.min(1 + escapeCount * 0.08, 1.9);
   const noMessage = escapeMessages[Math.min(escapeCount, escapeMessages.length - 1)];
@@ -137,8 +155,9 @@ function App() {
   const restart = () => {
     setStep(1);
     setEscapeCount(0);
+    window.clearTimeout(noMoveTimerRef.current);
     noMoveLockedRef.current = false;
-    setNoPosition({ top: 0, left: 0 });
+    applyNoOffset({ x: 0, y: 0 });
     setSelectedDate(dateConfig.date);
     setSelectedDinner('');
   };
@@ -156,7 +175,7 @@ function App() {
       <p className="step-copy">{dateConfig.myName} 有一個小小的邀請，<br />想和你一起度過一個特別的日子。</p>
       <div className="step-answer-area">
         <button ref={yesButtonRef} className="yes-button" style={{ transform: `scale(${noScale})` }} onClick={() => setStep(2)}><Heart size={19} fill="currentColor" /> 好哦 ♥</button>
-        <button ref={noButtonRef} className={`no-button ${escapeCount ? 'is-escaped' : ''}`} style={escapeCount ? { left: noPosition.left, top: noPosition.top } : undefined} onPointerEnter={moveNoButton} onPointerDown={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{escapeCount ? noMessage : 'No 👋'}</button>
+        <button ref={noButtonRef} type="button" className={`no-button ${escapeCount ? 'is-escaped' : ''}`} style={escapeCount ? { transform: `translate(${noOffset.x}px, ${noOffset.y}px)` } : undefined} onPointerEnter={moveNoButton} onPointerDown={(event) => { event.preventDefault(); moveNoButton(); }} onFocus={moveNoButton}>{escapeCount ? noMessage : 'No 👋'}</button>
       </div>
       <p className="tiny-note">提示：這題沒有錯誤答案，但有一個比較可愛的答案。</p>
     </section>}

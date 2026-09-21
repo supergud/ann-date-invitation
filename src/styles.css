@@ -589,15 +589,19 @@ h2 em {
     white-space: normal;
     text-align: center;
     z-index: 2;
-    transition: left .32s cubic-bezier(.22, 1, .36, 1), top .32s cubic-bezier(.22, 1, .36, 1), background .2s ease;
+    transition: transform .3s cubic-bezier(.22, 1, .36, 1), background .2s ease;
 }
 
+/* 逃跑時仍留在版面流程裡，只用 transform 位移：
+   祖先 .four-step-card 帶著 fadeUp 留下的 transform，position: fixed 會改以卡片為定位基準，
+   用視窗座標算出來的位置就會把按鈕推出畫面外。 */
 .no-button.is-escaped {
-    position: fixed;
-    z-index: 1000;
+    position: relative;
+    z-index: 5;
     margin: 0;
     visibility: visible;
     opacity: 1;
+    will-change: transform;
 }
 
 .tiny-note {
@@ -1106,7 +1110,7 @@ h2 em {
 }
 
 .step-answer-area .no-button.is-escaped {
-    z-index: 1000;
+    z-index: 5;
 }
 
 .date-input-wrap {
